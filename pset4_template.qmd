@@ -1,5 +1,5 @@
 ---
-title: "Your Title"
+title: "Hyeyoon & Lianxia"
 format: 
   pdf:
     keep-tex: true
@@ -23,6 +23,16 @@ include-before-body:
 
 ## Submission Steps (10 pts)
 
+• Partner 1 (name and cnet ID): Hyeyoon Lee , hyeyoon0423
+• Partner 2 (name and cnet ID): Lianxia Chi , lianxia66
+
+This submission is our work alone and complies with the 30538 integrity policy.” Add
+your initials to indicate your agreement: H.Y and L.C
+“I have uploaded the names of anyone else other than my partner and I worked with
+on the problem set here” H.Y
+Late coins used this pset: 0 Late coins left after submission: 3
+
+
 ## Download and explore the Provider of Services (POS) file (10 pts)
 
 1. 
@@ -33,6 +43,7 @@ include-before-body:
 4. 
     a.
     b.
+
 
 ## Identify hospital closures in POS file (15 pts) (*)
 
