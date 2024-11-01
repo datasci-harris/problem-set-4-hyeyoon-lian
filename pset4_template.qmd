@@ -312,16 +312,19 @@ zip_codes['ZIP_CODE'] = zip_codes['ZIP_CODE'].astype(str)
 texas_zip_codes = zip_codes[zip_codes['ZIP_CODE'].str.startswith(('75', '76', '77', '78'))]
 pos_data_path = "/Users/hyeyoonsmacbook/Desktop/Github/problem-set-4-hyeyoon-lian/pos2016.csv"
 pos_data = pd.read_csv(pos_data_path)
-pos_data['ZIP_CD'] = pos_data['ZIP_CD'].astype(str)
+pos_data['ZIP_CD'] = pos_data['ZIP_CD'].fillna(0).astype(int).astype(str)
 hospital_counts = pos_data.groupby('ZIP_CD').size().reset_index(name='hospital_count')
 texas_zip_codes = texas_zip_codes.merge(hospital_counts, how='left', left_on='ZIP_CODE', right_on='ZIP_CD')
 texas_zip_codes['hospital_count'] = texas_zip_codes['hospital_count'].fillna(0)  # Fill missing values with 0
+print(texas_zip_codes[['ZIP_CODE', 'hospital_count']].head(10))  # Check the first 10 rows of the merged data
+print(texas_zip_codes['hospital_count'].describe())  # Display summary statistics for hospital counts
 fig, ax = plt.subplots(1, 1, figsize=(12, 10))
 texas_zip_codes.plot(column='hospital_count', cmap='Blues', linewidth=0.8, ax=ax, edgecolor='0.8', legend=True)
 ax.set_title("Number of Hospitals per ZIP Code in Texas (2016)")
 ax.set_axis_off()
 plt.show()
 ```
+
 
 ## Calculate zip code’s distance to the nearest hospital (20 pts) (*)
 
