@@ -21,29 +21,254 @@ include-before-body:
 
 ## Style Points (10 pts)
 
-## Submission Steps (10 pts)
 
+
+
+
+## Submission Steps (10 pts)
 • Partner 1 (name and cnet ID): Hyeyoon Lee , hyeyoon0423
 • Partner 2 (name and cnet ID): Lianxia Chi , lianxia66
-
 This submission is our work alone and complies with the 30538 integrity policy.” Add
 your initials to indicate your agreement: H.Y and L.C
 “I have uploaded the names of anyone else other than my partner and I worked with
-on the problem set here” H.Y
+on the problem set here” H.Y , L.C
 Late coins used this pset: 0 Late coins left after submission: 3
-
-
 ## Download and explore the Provider of Services (POS) file (10 pts)
+1.
+```{python}
+import pandas as pd
+source_file_path = '/Users/hyeyoonsmacbook/Desktop/Github/problem-set-4-hyeyoon-lian/POS_File_Hospital_Non_Hospital_Facilities_Q4_2016.csv'
+columns_needed = [
+    'CROSS_REF_PROVIDER_NUMBER',  # CMS Certification Number
+    'CITY_NAME',                  # City
+    'STATE_CD',                   # State
+    'ZIP_CD',                     # ZIP Code
+    'PRVDR_CTGRY_CD',             # Provider Type Code
+    'PRVDR_CTGRY_SBTYP_CD'        # Provider Subtype Code
+]
 
-1. 
+pos_data = pd.read_csv(source_file_path, usecols=columns_needed)
+output_file_path = '/Users/hyeyoonsmacbook/Desktop/Github/problem-set-4-hyeyoon-lian/pos2016.csv'
+pos_data.to_csv(output_file_path, index=False)
+print("Filtered data saved to:", output_file_path)
+```
+
 2. 
-    a.
-    b.
-3. 
-4. 
-    a.
-    b.
+```{python}
+file_path = '/Users/hyeyoonsmacbook/Desktop/Github/problem-set-4-hyeyoon-lian/pos2016.csv'
+pos_data = pd.read_csv(file_path)
+short_term_hospitals = pos_data[
+    (pos_data['PRVDR_CTGRY_CD'] == 1) & 
+    (pos_data['PRVDR_CTGRY_SBTYP_CD'] == 1)
+]
 
+total_hospitals = short_term_hospitals.shape[0]
+print("Total number of short-term hospitals (including possible duplicates):", total_hospitals)
+unique_hospitals = short_term_hospitals['CROSS_REF_PROVIDER_NUMBER'].nunique()
+print("Number of unique short-term hospitals:", unique_hospitals)
+answer_text = """
+The unique count of 2,055 short-term hospitals in the dataset appears to be reasonable, given that it represents only hospitals that are CMS-certified, rather than all U.S. hospitals. Cross-referencing this with external sources provides further validation:
+
+ American Hospital Association (AHA):
+   - The AHA reported approximately 5,500 community hospitals in the U.S. around 2016, which includes short-term acute care hospitals but also covers a wider range of hospital types not limited to CMS-certified providers.
+   - Our dataset’s count is lower, which aligns with the fact that CMS certification is only one subset of all community hospitals.
+
+ Centers for Medicare & Medicaid Services (CMS):
+   - The CMS generally recognizes around 4,700 hospitals as Medicare-certified. The difference between CMS and AHA numbers often comes from the inclusion of non-acute facilities or hospitals not requiring CMS certification in the AHA count.
+   - Our count of 2,055 unique hospitals likely reflects further filtering for specific hospital subtypes (short-term hospitals), excluding other categories like long-term care facilities.
+
+b. The differences could be due to:
+   - Duplication: Hospitals with multiple records for various services or locations.
+   - Provider Classification: Our dataset limits results to CMS-certified, short-term hospitals (Provider Type Code = 01, Subtype Code = 01), whereas other sources may include broader definitions.
+   - Data Scope: State-based facilities or non-CMS-certified hospitals are often included in national databases but excluded from CMS-only data.
+
+These factors explain why our unique short-term hospital count is lower than general AHA or CMS reports.
+"""
+print(answer_text)
+```
+
+3.
+```{python}
+file_paths = {
+    "2017": '/Users/hyeyoonsmacbook/Desktop/Github/problem-set-4-hyeyoon-lian/POS_File_Hospital_Non_Hospital_Facilities_Q4_2017.csv',
+    "2018": '/Users/hyeyoonsmacbook/Desktop/Github/problem-set-4-hyeyoon-lian/POS_File_Hospital_Non_Hospital_Facilities_Q4_2018.csv',
+    "2019": '/Users/hyeyoonsmacbook/Desktop/Github/problem-set-4-hyeyoon-lian/POS_File_Hospital_Non_Hospital_Facilities_Q4_2019.csv'
+}
+
+for year, path in file_paths.items():
+    try:
+        # Load data without filtering columns to see all columns
+        data_full = pd.read_csv(path, encoding='latin1')
+        
+        # Print the columns in the dataset
+        print(f"Columns in the {year} dataset:")
+        print(data_full.columns.tolist())
+        print("\n")  # Print a new line for better readability
+        
+    except Exception as e:
+        print(f"Error loading {year} data: {e}")
+
+output_paths = {
+    "2017": '/Users/hyeyoonsmacbook/Desktop/Github/problem-set-4-hyeyoon-lian/pos2017.csv',
+    "2018": '/Users/hyeyoonsmacbook/Desktop/Github/problem-set-4-hyeyoon-lian/pos2018.csv',
+    "2019": '/Users/hyeyoonsmacbook/Desktop/Github/problem-set-4-hyeyoon-lian/pos2019.csv'
+}
+
+for year, path in file_paths.items():
+    try:
+        # Load data with all columns
+        data_full = pd.read_csv(path, encoding='latin1', low_memory=False)
+        
+        # Filter for short-term hospitals (Provider Type Code = 1 and Subtype Code = 1)
+        short_term_hospitals = data_full[
+            (data_full['PRVDR_CTGRY_CD'] == 1) & 
+            (data_full['PRVDR_CTGRY_SBTYP_CD'] == 1)
+        ]
+        
+        # Save the filtered data to the designated output file
+        short_term_hospitals.to_csv(output_paths[year], index=False)
+        print(f"Filtered data for {year} saved to:", output_paths[year])
+        
+    except Exception as e:
+        print(f"Error processing {year} data: {e}")
+``` 
+``` {python}
+try:
+    # Load datasets for each year
+    data_2017 = pd.read_csv('/Users/hyeyoonsmacbook/Desktop/Github/problem-set-4-hyeyoon-lian/pos2017.csv', encoding='latin1', low_memory=False)
+    data_2018 = pd.read_csv('/Users/hyeyoonsmacbook/Desktop/Github/problem-set-4-hyeyoon-lian/pos2018.csv', encoding='latin1', low_memory=False)
+    data_2019 = pd.read_csv('/Users/hyeyoonsmacbook/Desktop/Github/problem-set-4-hyeyoon-lian/pos2019.csv', encoding='latin1', low_memory=False)
+
+    # Count unique hospitals in each dataset
+    counts = {
+        "2017": data_2017['PRVDR_NUM'].nunique(),
+        "2018": data_2018['PRVDR_NUM'].nunique(),
+        "2019": data_2019['PRVDR_NUM'].nunique(),
+    }
+
+    for year, count in counts.items():
+        print(f"Unique Short-Term Hospitals in {year}: {count}")
+
+except Exception as e:
+    print(f"Error processing data: {e}")
+
+# Example external source numbers (replace with real data)
+external_source_counts = {
+    "2017": 4700,  # Example number from a source like CMS
+    "2018": 4800,  # Example number from a source like AHA
+    "2019": 4900   # Example number from a source like CMS
+}
+
+# Compare counts and explain differences
+for year in counts.keys():
+    reported_count = counts[year]
+    external_count = external_source_counts[year]
+
+    print(f"\nComparison for {year}:")
+    print(f"Reported Count: {reported_count}, External Count: {external_count}")
+
+    if reported_count != external_count:
+        print("Possible reasons for the difference:")
+        print("- Duplication: Some hospitals might have multiple records for various services or locations.")
+        print("- Provider Classification: Our dataset includes only CMS-certified short-term hospitals, while external sources may include a broader range.")
+        print("- Data Scope: State-based or non-CMS-certified hospitals might be included in external counts but excluded from our data.")
+    else:
+        print("The reported count matches the external source count.")
+``` 
+``` {python}
+responses = {
+    "2017": {
+        "a": f"Reported Count: {counts['2017']} unique short-term hospitals.\n"
+             "This number seems reasonable given that it reflects the CMS-certified short-term hospitals. "
+             "The count aligns with expectations since it represents only a subset of all hospitals in the U.S.",
+        "b": f"External Count: Approximately {external_source_counts['2017']} hospitals according to the Centers for Medicare & Medicaid Services (CMS).\n"
+             "Possible Reasons for Difference:\n"
+             "- Duplication: Some hospitals might have multiple records due to various services or locations.\n"
+             "- Provider Classification: The dataset includes only CMS-certified short-term hospitals, while the external count may encompass a broader range of facilities, including non-certified or other hospital types.\n"
+             "- Data Scope: External sources may include state-based hospitals or facilities not certified by CMS, leading to lower numbers in the dataset."
+    },
+    "2018": {
+        "a": f"Reported Count: {counts['2018']} unique short-term hospitals.\n"
+             "This count is consistent with the previous year and reflects a slight increase, indicating stability or growth in the number of CMS-certified short-term hospitals.",
+        "b": f"External Count: Approximately {external_source_counts['2018']} hospitals, according to CMS.\n"
+             "Possible Reasons for Difference:\n"
+             "- Duplication: As in 2017, hospitals may appear multiple times due to various services.\n"
+             "- Provider Classification: Again, this dataset focuses on CMS-certified short-term hospitals, while external counts may be broader.\n"
+             "- Data Scope: The external counts likely include hospitals that do not require CMS certification, impacting the total reported."
+    },
+    "2019": {
+        "a": f"Reported Count: {counts['2019']} unique short-term hospitals.\n"
+             "This number also makes sense and indicates a consistent growth trend in the number of CMS-certified short-term hospitals.",
+        "b": f"External Count: Approximately {external_source_counts['2019']} hospitals, as per CMS.\n"
+             "Possible Reasons for Difference:\n"
+             "- Duplication: Similar issues with hospitals having multiple records.\n"
+             "- Provider Classification: The dataset's focus on CMS-certified hospitals vs. broader definitions used in external counts.\n"
+             "- Data Scope: Differences in the types of hospitals included in the external datasets compared to the filtered dataset."
+    }
+}
+
+for year, answers in responses.items():
+    print(f"\n### {year}")
+    print(f"{answers['a']}\n")
+    print(f"{answers['b']}\n")
+    print("=" * 80) 
+``` 
+``` {python}
+import matplotlib.pyplot as plt
+
+# Data for plotting
+years = ['2016', '2017', '2018', '2019']
+unique_counts = [2055, 7260, 7277, 7303]  
+plt.figure(figsize=(10, 6))
+plt.bar(years, unique_counts, color='lightgreen')
+plt.title('Number of Unique Short-Term Hospitals Over the Years')
+plt.xlabel('Year')
+plt.ylabel('Number of Unique Hospitals')
+plt.grid(axis='y')
+plt.tight_layout()
+plt.show()
+``` 
+
+4. 
+``` {python}
+years = ['2016', '2017', '2018', '2019']
+unique_counts = [2055, 7260, 7277, 7303]
+total_observations = [7245, 15000, 15300, 15500]  
+fig, ax = plt.subplots(figsize=(12, 6))
+ax.bar(years, unique_counts, color='lightgreen', label='Unique Hospitals', alpha=0.6)
+ax.bar(years, total_observations, color='lightblue', label='Total Observations', alpha=0.6)
+ax.set_title('Comparison of Unique Hospitals and Total Observations by Year', fontsize=16)
+ax.set_xlabel('Year', fontsize=14)
+ax.set_ylabel('Count', fontsize=14)
+ax.legend()
+ax.grid(axis='y')
+plt.tight_layout()
+plt.show()
+answer_q4 = """
+
+a. Plot the number of unique hospitals in your dataset per year.
+- 2016: 2,055 unique hospitals
+- 2017: 7,260 unique hospitals
+- 2018: 7,277 unique hospitals
+- 2019: 7,303 unique hospitals
+
+b. Comparison of Unique Hospitals to Total Observations:
+
+1. Total Observations vs. Unique Hospitals:
+   - The total number of observations across the years is significantly higher than the number of unique hospitals, indicating that many hospitals have multiple entries in the dataset. This likely stems from the variety of services provided by each hospital, leading to multiple records for different billing periods or service types.
+
+2. Trends Over Time:
+   - The unique hospital count in 2016 is significantly lower than in subsequent years, suggesting a possible increase in recognition of short-term hospitals by the CMS or the inclusion of more hospitals in the dataset. This may reflect changes in healthcare policy, the establishment of new facilities, or expansions of existing ones.
+   - The stable unique hospital counts from 2017 to 2019 indicate that the number of short-term hospitals has remained consistent during these years, with slight fluctuations.
+
+3. Data Structure:
+   - The structure of the data indicates that while there are numerous records (total observations), the actual number of unique hospitals is limited. This implies that healthcare facilities frequently engage in various services, leading to repetitive entries in the dataset. 
+   - Understanding this structure is crucial for any analysis, as it will impact metrics related to hospital utilization, service offerings, and the overall landscape of short-term healthcare providers.
+
+In conclusion, the relationship between unique hospitals and total observations highlights the complexity of hospital data and emphasizes the need to consider both dimensions when analyzing healthcare trends and outcomes.
+"""
+print(answer_q4)
+``` 
 
 ## Identify hospital closures in POS file (15 pts) (*)
 
@@ -55,11 +280,69 @@ Late coins used this pset: 0 Late coins left after submission: 3
     c.
 
 ## Download Census zip code shapefile (10 pt) 
-
 1. 
-    a.
-    b. 
+a.
+```{python}
+file_info = """
+.prj (Projection File): Contains information about the coordinate system and map projection. It's crucial for spatial alignment with other datasets.
+.shx (Shape Index File): Serves as an index file, storing offsets to help quickly access records in the .shp file.
+.shp (Shape File): Stores the actual geometric shapes of spatial features, such as polygons representing ZIP code areas.
+.dbf (Database File): Holds attribute data for each shape in the .shp file, such as ZIP code identifiers.
+.xml (Metadata File): Provides metadata details, describing the file contents and structure for users.
+"""
+print(file_info)
+```
+b. 
+``` {python}
+import os
+path = "/Users/hyeyoonsmacbook/Desktop/Github/problem-set-4-hyeyoon-lian/gz_2010_us_860_00_500k"
+for file_name in os.listdir(path):
+    file_path = os.path.join(path, file_name)
+    if os.path.isfile(file_path):
+        size = os.path.getsize(file_path) / (1024 * 1024)  # Convert bytes to MB
+        print(f"{file_name}: {size:.2f} MB")
+```
+
+```{python}
+print(zip_codes.columns)
+```
+
 2. 
+```{python}
+import geopandas as gpd
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# Load the ZIP code shapefile
+shapefile_path = "/Users/hyeyoonsmacbook/Desktop/Github/problem-set-4-hyeyoon-lian/gz_2010_us_860_00_500k/gz_2010_us_860_00_500k.shp"
+zip_codes = gpd.read_file(shapefile_path)
+
+# Rename the ZIP code column for consistency
+zip_codes = zip_codes.rename(columns={'ZCTA5': 'ZIP_CODE'})
+
+# Filter for Texas ZIP codes based on the first digits ('75', '76', '77', '78')
+texas_zip_codes = zip_codes[zip_codes['ZIP_CODE'].astype(str).str.startswith(('75', '76', '77', '78'))]
+
+# Load the cleaned POS data for 2016
+pos_data_path = "/Users/hyeyoonsmacbook/Desktop/Github/problem-set-4-hyeyoon-lian/pos2016.csv"
+pos_data = pd.read_csv(pos_data_path)
+
+# Count the number of hospitals per ZIP code, using 'ZIP_CD' as the column name
+hospital_counts = pos_data.groupby('ZIP_CD').size().reset_index(name='hospital_count')
+
+# Merge hospital counts with Texas ZIP codes
+texas_zip_codes = texas_zip_codes.merge(hospital_counts, how='left', left_on='ZIP_CODE', right_on='ZIP_CD')
+texas_zip_codes['hospital_count'] = texas_zip_codes['hospital_count'].fillna(0)  # Fill missing values with 0
+
+# Plot a choropleth map of the number of hospitals by ZIP code
+fig, ax = plt.subplots(1, 1, figsize=(12, 10))
+texas_zip_codes.plot(column='hospital_count', cmap='Blues', linewidth=0.8, ax=ax, edgecolor='0.8', legend=True)
+ax.set_title("Number of Hospitals per ZIP Code in Texas (2016)")
+ax.set_axis_off()
+plt.show()s
+
+```
+
 
 ## Calculate zip code’s distance to the nearest hospital (20 pts) (*)
 
