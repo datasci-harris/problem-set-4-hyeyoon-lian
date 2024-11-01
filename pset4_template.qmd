@@ -302,16 +302,9 @@ for file_name in os.listdir(path):
         size = os.path.getsize(file_path) / (1024 * 1024)  # Convert bytes to MB
         print(f"{file_name}: {size:.2f} MB")
 ```
-
-```{python}
-print(zip_codes.columns)
-```
-
 2. 
 ```{python}
 import geopandas as gpd
-import pandas as pd
-import matplotlib.pyplot as plt
 
 # Load the ZIP code shapefile
 shapefile_path = "/Users/hyeyoonsmacbook/Desktop/Github/problem-set-4-hyeyoon-lian/gz_2010_us_860_00_500k/gz_2010_us_860_00_500k.shp"
@@ -320,7 +313,7 @@ zip_codes = gpd.read_file(shapefile_path)
 # Rename the ZIP code column for consistency
 zip_codes = zip_codes.rename(columns={'ZCTA5': 'ZIP_CODE'})
 
-# Filter for Texas ZIP codes based on the first digits ('75', '76', '77', '78')
+# Filter for Texas ZIP codes using the prefixes ('75', '76', '77', '78')
 texas_zip_codes = zip_codes[zip_codes['ZIP_CODE'].astype(str).str.startswith(('75', '76', '77', '78'))]
 
 # Load the cleaned POS data for 2016
@@ -339,8 +332,7 @@ fig, ax = plt.subplots(1, 1, figsize=(12, 10))
 texas_zip_codes.plot(column='hospital_count', cmap='Blues', linewidth=0.8, ax=ax, edgecolor='0.8', legend=True)
 ax.set_title("Number of Hospitals per ZIP Code in Texas (2016)")
 ax.set_axis_off()
-plt.show()s
-
+plt.show()
 ```
 
 
