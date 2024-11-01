@@ -305,36 +305,23 @@ for file_name in os.listdir(path):
 2. 
 ```{python}
 import geopandas as gpd
-
-# Load the ZIP code shapefile
 shapefile_path = "/Users/hyeyoonsmacbook/Desktop/Github/problem-set-4-hyeyoon-lian/gz_2010_us_860_00_500k/gz_2010_us_860_00_500k.shp"
 zip_codes = gpd.read_file(shapefile_path)
-
-# Rename the ZIP code column for consistency
 zip_codes = zip_codes.rename(columns={'ZCTA5': 'ZIP_CODE'})
-
-# Filter for Texas ZIP codes using the prefixes ('75', '76', '77', '78')
-texas_zip_codes = zip_codes[zip_codes['ZIP_CODE'].astype(str).str.startswith(('75', '76', '77', '78'))]
-
-# Load the cleaned POS data for 2016
+zip_codes['ZIP_CODE'] = zip_codes['ZIP_CODE'].astype(str)
+texas_zip_codes = zip_codes[zip_codes['ZIP_CODE'].str.startswith(('75', '76', '77', '78'))]
 pos_data_path = "/Users/hyeyoonsmacbook/Desktop/Github/problem-set-4-hyeyoon-lian/pos2016.csv"
 pos_data = pd.read_csv(pos_data_path)
-
-# Count the number of hospitals per ZIP code, using 'ZIP_CD' as the column name
+pos_data['ZIP_CD'] = pos_data['ZIP_CD'].astype(str)
 hospital_counts = pos_data.groupby('ZIP_CD').size().reset_index(name='hospital_count')
-
-# Merge hospital counts with Texas ZIP codes
 texas_zip_codes = texas_zip_codes.merge(hospital_counts, how='left', left_on='ZIP_CODE', right_on='ZIP_CD')
 texas_zip_codes['hospital_count'] = texas_zip_codes['hospital_count'].fillna(0)  # Fill missing values with 0
-
-# Plot a choropleth map of the number of hospitals by ZIP code
 fig, ax = plt.subplots(1, 1, figsize=(12, 10))
 texas_zip_codes.plot(column='hospital_count', cmap='Blues', linewidth=0.8, ax=ax, edgecolor='0.8', legend=True)
 ax.set_title("Number of Hospitals per ZIP Code in Texas (2016)")
 ax.set_axis_off()
 plt.show()
 ```
-
 
 ## Calculate zip code’s distance to the nearest hospital (20 pts) (*)
 
