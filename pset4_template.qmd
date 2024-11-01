@@ -338,7 +338,216 @@ plt.show()
 ## Calculate zip code’s distance to the nearest hospital (20 pts) (*)
 
 1. 
+
+```{python}
+import pandas as pd
+import numpy as np
+
+
+# read data
+pos_2016 = pd.read_csv('pos2016.csv')
+pos_2017 = pd.read_csv('pos2017.csv')
+pos_2018 = pd.read_csv('pos2018.csv')
+pos_2019 = pd.read_csv('pos2019.csv')
+
+
+```
+
+```{python}
+def filter_active_hospitals(data, year):
+    return data[
+        (data['PRVDR_CTGRY_CD'] == '1') & 
+        (data['PRVDR_CTGRY_SBTYP_CD'] == '1') & 
+        (data['PGM_TRMNTN_CD'] == 0)
+    ][['CROSS_REF_PROVIDER_NUMBER', 'FAC_NAME', 'ZIP_CD']].copy()
+
+active_2016 = filter_active_hospitals(pos_2016, 2016)
+active_2017 = filter_active_hospitals(pos_2017, 2017)
+active_2018 = filter_active_hospitals(pos_2018, 2018)
+active_2019 = filter_active_hospitals(pos_2019, 2019)
+
+```
+
+```{python}
+active_2016 = pos_2016[
+    (pos_2016['PRVDR_CTGRY_CD'] == '1') & 
+    (pos_2016['PRVDR_CTGRY_SBTYP_CD'] == '1')
+][['CROSS_REF_PROVIDER_NUMBER', 'FAC_NAME', 'ZIP_CD', 'PGM_TRMNTN_CD']]
+
+active_2017 = pos_2017[
+    (pos_2017['PRVDR_CTGRY_CD'] == '1') & 
+    (pos_2017['PRVDR_CTGRY_SBTYP_CD'] == '1')
+][['CROSS_REF_PROVIDER_NUMBER', 'PGM_TRMNTN_CD']]
+
+active_2018 = pos_2018[
+    (pos_2018['PRVDR_CTGRY_CD'] == '1') & 
+    (pos_2018['PRVDR_CTGRY_SBTYP_CD'] == '1')
+][['CROSS_REF_PROVIDER_NUMBER', 'PGM_TRMNTN_CD']]
+
+active_2019 = pos_2019[
+    (pos_2019['PRVDR_CTGRY_CD'] == '1') & 
+    (pos_2019['PRVDR_CTGRY_SBTYP_CD'] == '1')
+][['CROSS_REF_PROVIDER_NUMBER', 'PGM_TRMNTN_CD']]
+
+```
+
+
+```{python}
+
+active_2016 = active_2016.rename(columns={'PGM_TRMNTN_CD': 'PGM_TRMNTN_CD_2016'})
+active_2017 = active_2017.rename(columns={'PGM_TRMNTN_CD': 'PGM_TRMNTN_CD_2017'})
+active_2018 = active_2018.rename(columns={'PGM_TRMNTN_CD': 'PGM_TRMNTN_CD_2018'})
+active_2019 = active_2019.rename(columns={'PGM_TRMNTN_CD': 'PGM_TRMNTN_CD_2019'})
+
+
+```
+
+```{python}
+# merge data
+merged_data = active_2016.merge(active_2017, on='CROSS_REF_PROVIDER_NUMBER', how='left', suffixes=('_2016', '_2017')) \
+                         .merge(active_2018, on='CROSS_REF_PROVIDER_NUMBER', how='left') \
+                         .merge(active_2019, on='CROSS_REF_PROVIDER_NUMBER', how='left')
+
+```
+
+```{python}
+conditions = [
+    (merged_data['PGM_TRMNTN_CD_2016'] == 0) & (merged_data['PGM_TRMNTN_CD_2017'] != 0),
+    (merged_data['PGM_TRMNTN_CD_2016'] == 0) & (merged_data['PGM_TRMNTN_CD_2017'] == 0) & (merged_data['PGM_TRMNTN_CD_2018'] != 0),
+    (merged_data['PGM_TRMNTN_CD_2016'] == 0) & (merged_data['PGM_TRMNTN_CD_2017'] == 0) & (merged_data['PGM_TRMNTN_CD_2018'] == 0) & (merged_data['PGM_TRMNTN_CD_2019'] != 0)
+]
+choices = [2017, 2018, 2019]
+
+merged_data['Closure_Year'] = np.select(conditions, choices, default=np.nan)
+
+
+```
+
+```{python}
+suspected_closures = merged_data[merged_data['Closure_Year'].notna()][['CROSS_REF_PROVIDER_NUMBER', 'FAC_NAME', 'ZIP_CD', 'Closure_Year']]
+
+```
+
+```{python}
+print("Number of suspected hospital closures:", suspected_closures.shape[0])
+print(suspected_closures.head(10))
+
+
+```
+
+```{python}
+import pandas as pd
+import numpy as np
+
+# read data
+pos_2016 = pd.read_csv('pos2016.csv')
+pos_2017 = pd.read_csv('pos2017.csv')
+pos_2018 = pd.read_csv('pos2018.csv')
+pos_2019 = pd.read_csv('pos2019.csv')
+
+# Define a function to filter hospitals that are active each year
+def filter_active_hospitals(data, year):
+    return data[
+        (data['PRVDR_CTGRY_CD'] == '1') & 
+        (data['PRVDR_CTGRY_SBTYP_CD'] == '1') & 
+        (data['PGM_TRMNTN_CD'] == 0)
+    ][['CROSS_REF_PROVIDER_NUMBER', 'FAC_NAME', 'ZIP_CD']].copy()
+
+active_2016 = filter_active_hospitals(pos_2016, 2016)
+active_2017 = filter_active_hospitals(pos_2017, 2017)
+active_2018 = filter_active_hospitals(pos_2018, 2018)
+active_2019 = filter_active_hospitals(pos_2019, 2019)
+
+# rename
+active_2016 = active_2016.rename(columns={'PGM_TRMNTN_CD': 'PGM_TRMNTN_CD_2016'})
+active_2017 = active_2017.rename(columns={'PGM_TRMNTN_CD': 'PGM_TRMNTN_CD_2017'})
+active_2018 = active_2018.rename(columns={'PGM_TRMNTN_CD': 'PGM_TRMNTN_CD_2018'})
+active_2019 = active_2019.rename(columns={'PGM_TRMNTN_CD': 'PGM_TRMNTN_CD_2019'})
+
+# merged data
+merged_data = active_2016.merge(active_2017, on='CROSS_REF_PROVIDER_NUMBER', how='left') \
+                         .merge(active_2018, on='CROSS_REF_PROVIDER_NUMBER', how='left') \
+                         .merge(active_2019, on='CROSS_REF_PROVIDER_NUMBER', how='left')
+
+# Check the merged column names
+print("Merged data columns:", merged_data.columns)
+
+# Ensure that all required columns exist
+expected_columns = ['PGM_TRMNTN_CD_2016', 'PGM_TRMNTN_CD_2017', 'PGM_TRMNTN_CD_2018', 'PGM_TRMNTN_CD_2019']
+for col in expected_columns:
+    if col not in merged_data.columns:
+        print(f"Warning: Column '{col}' is missing in merged_data. Please check the suffixes or the data.")
+
+# Conditions for suspicious closing years
+conditions = [
+    (merged_data['PGM_TRMNTN_CD_2016'] == 0) & (merged_data['PGM_TRMNTN_CD_2017'] != 0),
+    (merged_data['PGM_TRMNTN_CD_2016'] == 0) & (merged_data['PGM_TRMNTN_CD_2017'] == 0) & (merged_data['PGM_TRMNTN_CD_2018'] != 0),
+    (merged_data['PGM_TRMNTN_CD_2016'] == 0) & (merged_data['PGM_TRMNTN_CD_2017'] == 0) & (merged_data['PGM_TRMNTN_CD_2018'] == 0) & (merged_data['PGM_TRMNTN_CD_2019'] != 0)
+]
+choices = [2017, 2018, 2019]
+
+# Create the closed year column
+merged_data['Closure_Year'] = np.select(conditions, choices, default=np.nan)
+
+# Extract suspicious closed hospitals
+suspected_closures = merged_data[merged_data['Closure_Year'].notna()][['CROSS_REF_PROVIDER_NUMBER', 'FAC_NAME_2016', 'ZIP_CD_2016', 'Closure_Year']]
+print("Number of suspected hospital closures:", suspected_closures.shape[0])
+print(suspected_closures.head(10))
+
+
+
+```
+
+```{python}
+import pandas as pd
+
+# Read data file
+data_2016 = pd.read_csv('pos2016.csv', encoding='ISO-8859-1')
+data_2017 = pd.read_csv('pos2017.csv', encoding='ISO-8859-1')
+data_2018 = pd.read_csv('pos2018.csv', encoding='ISO-8859-1')
+data_2019 = pd.read_csv('pos2019.csv', encoding='ISO-8859-1')
+
+
+
+# Filter active short-term hospitals in 2016
+hospital_2016 = data_2016[(data_2016['PRVDR_CTGRY_CD'] == 1) & 
+                        (data_2016['PRVDR_CTGRY_SBTYP_CD'] == 1) & 
+                        (data_2016['PGM_TRMNTN_CD'] == 0)]
+active_2016 = hospital_2016[['FAC_NAME', 'ZIP_CD', 'PRVDR_NUM']]
+
+# Define a function to check hospital closures
+def check_closure(year_df, active_df, year):
+    year_active = year_df[(year_df['PRVDR_CTGRY_CD'] == 1) & 
+                          (year_df['PRVDR_CTGRY_SBTYP_CD'] == 1) & 
+                          (year_df['PGM_TRMNTN_CD'] == 0)]['PRVDR_NUM']
+    closed = active_df[~active_df['PRVDR_NUM'].isin(year_active)].copy()
+    closed['Closure_Year'] = year
+    return closed
+
+# Check for closures in subsequent years
+closed_2017 = check_closure(data_2017, active_2016, 2017)
+closed_2018 = check_closure(data_2018, active_2016, 2018)
+closed_2019 = check_closure(data_2019, active_2016, 2019)
+
+# Merge all closed data
+all_closed = pd.concat([closed_2017, closed_2018, closed_2019]).drop_duplicates(subset='PRVDR_NUM')
+
+# Shows the number of suspected closures and the first 10 rows
+num_closures = all_closed.shape[0]
+print(f"Number of suspected hospital closures: {num_closures}")
+print(all_closed[['FAC_NAME', 'ZIP_CD', 'Closure_Year']].head(10))
+
+```
+I identified hospitals that were still active in 2016 but were suspected to have closed by 2019. The definition of closure for these hospitals is that they were marked as "active providers" in 2016 but then either became inactive or disappeared from the data in subsequent years. There are a total of 174 suspected hospital closures, with each hospital's name, ZIP code, and suspected closure year recorded.
+
 2. 
+
+```{python}
+sorted_closed = all_closed.sort_values(by='FAC_NAME')
+print(sorted_closed[['FAC_NAME', 'ZIP_CD', 'Closure_Year']].head(10))
+```
+I have sorted the list of hospitals that were active in 2016 but suspected to have closed by 2019 by their names. Here are the first 10 hospitals in alphabetical order along with their suspected closure years: Abrazo Maryvale Campus (2017), Adventist Medical Center – Central Valley (2017), Affinity Medical Center (2018), Albany Medical Center / South Clinical Campus (2017), Allegiance Specialty Hospital of Kilgore (2017), Alliance Laird Hospital (2019), Alliancehealth Deaconess (2019), Anne Bates Leach Eye Hospital (2017), Arkansas Valley Regional Medical Center (2017), and Banner Churchill Community Hospital (2017).
+
 3. 
 4. 
     a.
