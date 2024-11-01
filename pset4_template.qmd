@@ -152,6 +152,7 @@ print("Summary has been saved to 'short_term_hospitals_analysis.txt'.")
 
 3.
 ```{python}
+import pandas as pd
 import matplotlib.pyplot as plt
 
 # Define file paths for each year's filtered data
@@ -188,10 +189,10 @@ except Exception as e:
 
 # Define external counts for comparison
 external_source_counts = {
-    "2016": 4600,  # Example number from a source like CMS for 2016
-    "2017": 4700,  # Example number from a source like CMS
-    "2018": 4800,  # Example number from a source like AHA
-    "2019": 4900   # Example number from a source like CMS
+    "2016": 4600,
+    "2017": 4700,
+    "2018": 4800,
+    "2019": 4900
 }
 
 # Print comparison with external sources
@@ -218,9 +219,14 @@ plt.xlabel('Year')
 plt.ylabel('Number of Unique Hospitals')
 plt.grid(axis='y')
 plt.xticks(rotation=0)
+
+# Add data labels on top of the bars
+for index, value in enumerate(counts.values()):
+    plt.text(index, value, str(value), ha='center', va='bottom')
+
 plt.tight_layout()
 plt.show()
-``` 
+```
 4. 
 ``` {python}
 # Define file paths for each year's filtered data
