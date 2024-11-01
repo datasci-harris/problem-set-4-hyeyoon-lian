@@ -286,15 +286,12 @@ print(answer_q4)
 ``` 
 #Identify hospital closures in POS file (15pts)
 1. 
-
-```{python}
+``` {python}
 # Read data file
 data_2016 = pd.read_csv('pos2016.csv', encoding='ISO-8859-1')
 data_2017 = pd.read_csv('pos2017.csv', encoding='ISO-8859-1')
 data_2018 = pd.read_csv('pos2018.csv', encoding='ISO-8859-1')
 data_2019 = pd.read_csv('pos2019.csv', encoding='ISO-8859-1')
-
-
 
 # Filter active short-term hospitals in 2016
 hospital_2016 = data_2016[(data_2016['PRVDR_CTGRY_CD'] == 1) & 
@@ -310,8 +307,7 @@ def check_closure(year_df, active_df, year):
     closed = active_df[~active_df['PRVDR_NUM'].isin(year_active)].copy()
     closed['Closure_Year'] = year
     return closed
-
-# Check for closures in subsequent years
+ # Check for closures in subsequent years
 closed_2017 = check_closure(data_2017, active_2016, 2017)
 closed_2018 = check_closure(data_2018, active_2016, 2018)
 closed_2019 = check_closure(data_2019, active_2016, 2019)
@@ -324,17 +320,31 @@ num_closures = all_closed.shape[0]
 print(f"Number of suspected hospital closures: {num_closures}")
 print(all_closed[['FAC_NAME', 'ZIP_CD', 'Closure_Year']].head(10))
 
-```
-I identified hospitals that were still active in 2016 but were suspected to have closed by 2019. The definition of closure for these hospitals is that they were marked as "active providers" in 2016 but then either became inactive or disappeared from the data in subsequent years. There are a total of 174 suspected hospital closures, with each hospital's name, ZIP code, and suspected closure year recorded.
+suspected_closures_info = """
+I identified hospitals that were still active in 2016 but were suspected to have closed by 2019. 
+The definition of closure for these hospitals is that they were marked as "active providers" in 2016 
+but then either became inactive or disappeared from the data in subsequent years. 
 
+There are a total of {} suspected hospital closures, with each hospital's name, ZIP code, 
+and suspected closure year recorded.
+""".format(174)
+
+# Print the formatted findings
+print(suspected_closures_info)
+``` 
 2. 
-
 ```{python}
 sorted_closed = all_closed.sort_values(by='FAC_NAME')
-print(sorted_closed[['FAC_NAME', 'ZIP_CD', 'Closure_Year']].head(10))
-```
-I have sorted the list of hospitals that were active in 2016 but suspected to have closed by 2019 by their names. Here are the first 10 hospitals in alphabetical order along with their suspected closure years: Abrazo Maryvale Campus (2017), Adventist Medical Center – Central Valley (2017), Affinity Medical Center (2018), Albany Medical Center / South Clinical Campus (2017), Allegiance Specialty Hospital of Kilgore (2017), Alliance Laird Hospital (2019), Alliancehealth Deaconess (2019), Anne Bates Leach Eye Hospital (2017), Arkansas Valley Regional Medical Center (2017), and Banner Churchill Community Hospital (2017).
 
+# Print the sorted DataFrame with relevant columns
+print(sorted_closed[['FAC_NAME', 'ZIP_CD', 'Closure_Year']].head(10))
+
+# Explanation of the sorted hospitals
+print("\nI have sorted the list of hospitals that were active in 2016 but suspected to have closed by 2019 by their names. "
+      "Here are the first 10 hospitals in alphabetical order along with their suspected closure years:")
+for index, row in sorted_closed[['FAC_NAME', 'Closure_Year']].head(10).iterrows():
+    print(f"- {row['FAC_NAME']} ({row['Closure_Year']})")
+```
 3. 
     a.
     b.
