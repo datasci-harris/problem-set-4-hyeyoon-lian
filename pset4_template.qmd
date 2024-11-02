@@ -444,12 +444,174 @@ plt.show()
 3. 
 4. 
     a.
+
+```{python}
+#重做也是能扫出来代码的
+
+import time
+import geopandas as gpd
+from shapely.ops import nearest_points
+import numpy as np
+
+# Load the central point data for all ZIP code areas
+zip_shapefile_path = "/Users/joying/Documents/GitHub/student30538-5/Problem Set 4_Pair with Hyeyoon/gz_2010_us_860_00_500k/gz_2010_us_860_00_500k.shp"
+zips_all_centroids = gpd.read_file(zip_shapefile_path)
+
+# Make sure the ZCTA5 field is of string type
+zips_all_centroids['ZCTA5'] = zips_all_centroids['ZCTA5'].astype(str)
+
+# Filter ZIP code areas in Texas
+texas_prefixes = ('75', '76', '77')
+zips_texas_centroids = zips_all_centroids[zips_all_centroids['ZCTA5'].str.startswith(texas_prefixes)].copy()
+
+# Ensure that the 'centroid' column exists: Calculate the center of mass of the Texas ZIP region and the ZIP region with the hospital
+zips_texas_centroids['centroid'] = zips_texas_centroids.geometry.centroid
+zips_withhospital_centroids['centroid'] = zips_withhospital_centroids.geometry.centroid
+
+# Step a: First calculate the distance and estimate the time for the 10 ZIP code areas in zips_texas_centroids
+subset_zips = zips_texas_centroids.sample(n=10, random_state=10)
+
+# Record start time
+start_time = time.time()
+
+# Define a function to calculate the nearest distance
+def compute_nearest_distance(centroid, hospitals_df):
+    # Merge all hospital areas using union_all()
+    hospitals_union = hospitals_df.geometry.union_all()
+    nearest_point = nearest_points(centroid, hospitals_union)[1]
+    return centroid.distance(nearest_point)
+
+# Distance calculation for the subset
+subset_zips['nearest_distance'] = subset_zips['centroid'].apply(
+    lambda x: compute_nearest_distance(x, zips_withhospital_centroids)
+)
+
+# End of record time
+end_time = time.time()
+
+# Outputs the time for the subset calculation and estimates the time for the full calculation
+time_taken_subset = end_time - start_time
+print(f"Calculate the time of 10 ZIP codes: {time_taken_subset:.2f} seconds")
+total_estimated_time = time_taken_subset * (len(zips_texas_centroids) / 10)
+print(f"Estimate the complete calculation time: {total_estimated_time:.2f} seconds")
+
+#Step b: Perform distance calculations for the complete dataset
+start_time_full = time.time()
+
+# Define a function to calculate the distance (use union_all instead of unary_union)
+def compute_nearest_distance_full(centroid, hospitals_df):
+    hospitals_union = hospitals_df.geometry.union_all()
+    nearest_point = nearest_points(centroid, hospitals_union)[1]
+    return centroid.distance(nearest_point)
+
+# Computes all ZIP code areas in zips_texas_centroids
+zips_texas_centroids['nearest_distance'] = zips_texas_centroids['centroid'].apply(
+    lambda x: compute_nearest_distance_full(x, zips_withhospital_centroids)
+)
+
+# Record the end time of the complete calculation
+end_time_full = time.time()
+
+# Output the time of the complete calculation
+time_taken_full = end_time_full - start_time_full
+print(f"Time taken for full calculation: {time_taken_full:.2f} seconds")
+```
+Calculate the time of 10 ZIP codes: 45.44 seconds
+Estimate the complete calculation time: 5338.76 seconds
     b.
+
+```{python}
+#正确了
+import time
+import numpy as np
+from scipy.spatial import cKDTree
+from shapely.geometry import Point
+
+# 提Extract the centroid coordinates of the Texas ZIP code
+texas_centroids_coords = np.array([(geom.x, geom.y) for geom in zips_texas_centroids['centroid']])
+
+# Extract the centroid coordinates of the ZIP code with the hospital
+hospital_centroids_coords = np.array([(geom.x, geom.y) for geom in zips_withhospital_centroids['centroid']])
+
+# Use KD-Tree for nearest neighbor query
+hospital_tree = cKDTree(hospital_centroids_coords)
+
+# Record start time
+start_time_full = time.time()
+
+# Find the distance from each center of mass in zips_texas_centroids to the nearest hospital center of mass
+distances, _ = hospital_tree.query(texas_centroids_coords, k=1)
+
+# Add the result of the calculation to the GeoDataFrame
+zips_texas_centroids['nearest_distance'] = distances
+
+# End of record time
+end_time_full = time.time()
+
+# Total output time
+time_taken_full = end_time_full - start_time_full
+print(f"Time taken for full calculation using KD-Tree: {time_taken_full:.2f} seconds")
+
+```
+Time taken for full calculation using KD-Tree: 9.17 seconds.
+
+When performing the full dataset distance calculation, I optimized the process using a KD-Tree to speed up the computation. The total calculation time was 9.17 seconds. Compared to the earlier time estimation based on a subset of 10 ZIP code areas, the actual computation time was significantly reduced. This demonstrates that using a KD-Tree for nearest neighbor queries greatly enhances efficiency, making it far faster than direct point-by-point calculations.
+
     c.
+
+```{python}
+import fiona
+
+#Load the shapefile and get the coordinate system information
+shapefile_path = "/Users/joying/Documents/GitHub/student30538-5/Problem Set 4_Pair with Hyeyoon/gz_2010_us_860_00_500k/gz_2010_us_860_00_500k.shp"
+
+with fiona.open(shapefile_path) as shp:
+    crs_info = shp.crs
+
+print("Coordinate Reference System (CRS) information:", crs_info)
+```
+```{python}
+# Open the.prj file and print the contents
+prj_file_path = "/Users/joying/Documents/GitHub/student30538-5/Problem Set 4_Pair with Hyeyoon/gz_2010_us_860_00_500k/gz_2010_us_860_00_500k.prj"
+
+with open(prj_file_path, 'r') as file:
+    prj_content = file.read()
+
+print("PRJ file content:\n", prj_content)
+
+```
+```{python}
+# Assuming that the units of the 'nearest_distance' column are meters, convert it to miles
+zips_texas_centroids['nearest_distance_miles'] = zips_texas_centroids['nearest_distance'] * 0.000621371
+
+# Displays the first few lines of results
+print(zips_texas_centroids[['ZCTA5', 'nearest_distance', 'nearest_distance_miles']].head())
+
+```
+According to the .prj file, the coordinate system unit is meters. We converted the distances from meters to miles using a conversion factor of 1 meter ≈ 0.000621371 miles. The final results are stored in the nearest_distance_miles column, successfully converting the distances to miles.
+
 5. 
-    a.
-    b.
-    c.
+   
+```{python}
+import matplotlib.pyplot as plt
+
+# Calculate the average distance to the nearest hospital for all ZIP code areas in Texas
+average_distance_miles = zips_texas_centroids['nearest_distance_miles'].mean()
+
+# Output mean distance
+print(f"The average distance to the nearest hospital for each ZIP code in Texas: {average_distance_miles:.2f} miles")
+
+# Visualize the distance in miles for each ZIP code area
+fig, ax = plt.subplots(figsize=(12, 10))
+zips_texas_centroids.plot(column='nearest_distance_miles', cmap='coolwarm', linewidth=0.8, ax=ax, edgecolor='0.8', legend=True)
+ax.set_title("Distance to Nearest Hospital for Each ZIP Code in Texas (in Miles)", fontsize=16)
+ax.set_axis_off()
+plt.show()
+
+```
+I calculated the average distance to the nearest hospital for each ZIP code area in Texas, with the unit in miles. The average distance is a reasonable value, reflecting the variation in residents' proximity to the nearest hospital across different areas. On the map, urban areas (shown in blue) have shorter distances, while remote areas (shown in red) have longer distances, which aligns with expectations.
+ 
+    
     
 ## Effects of closures on access in Texas (15 pts)
 
@@ -462,3 +624,9 @@ plt.show()
 4. 
 
 ## Reflecting on the exercise (10 pts) 
+ (Partner 1)
+
+ (Partner 2)
+The current analysis measures hospital accessibility by identifying ZIP code areas affected by hospital closures, which partially reflects the direct impact on these areas. However, this method may have limitations in fully capturing changes in ZIP code-level accessibility, such as overlooking indirect effects on neighboring ZIP codes and ignoring factors like transportation accessibility. Additionally, it doesn’t account for hospital service levels and capacity, nor does it dynamically reflect the long-term impact of closures on the distribution of healthcare resources.
+
+To improve this measure, we could consider adding a buffer analysis to assess the impact of hospital closures on nearby areas, as well as incorporating transportation and accessibility data to simulate the actual ease of access to care. Assigning weights based on hospital service levels would better reflect the varying impacts of hospitals on different regions, and adding a time-series analysis would help observe long-term accessibility changes resulting from closures. These improvements would make ZIP code-level hospital accessibility measurement more accurate and practical.
