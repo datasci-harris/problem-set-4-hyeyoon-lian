@@ -440,13 +440,114 @@ plt.show()
 ## Calculate zip code’s distance to the nearest hospital (20 pts) (*)
 
 1. 
+
+```{python}
+
+import geopandas as gpd
+
+# Load the shapefile
+zip_shapefile_path = "/Users/joying/Documents/GitHub/student30538-5/Problem Set 4_Pair with Hyeyoon/gz_2010_us_860_00_500k"
+zips_all = gpd.read_file(zip_shapefile_path)
+
+# Ensure that the data is in a projected coordinate system suitable for distance calculations (Albers Equal Area, for USA)
+zips_all = zips_all.to_crs("EPSG:5070")
+
+# Calculate the center of mass of each ZIP Code
+zips_all['centroid'] = zips_all.geometry.centroid
+
+# Create a GeoDataFrame containing the ZIP Code and center of mass
+zips_all_centroids = gpd.GeoDataFrame(zips_all[['ZCTA5', 'centroid']], geometry='centroid', crs=zips_all.crs)
+
+# Look at the dimensions and first few lines of the GeoDataFrame
+print("Dimensions of zips_all_centroids:", zips_all_centroids.shape)
+print(zips_all_centroids.head())
+
+```
 2. 
+
+```{python}
+
+# Texas zip code prefix
+texas_prefixes = ('75', '76', '77', '78', '79')
+zips_texas_centroids = zips_all_centroids[zips_all_centroids['ZCTA5'].str.startswith(texas_prefixes)]
+num_texas_zip = zips_texas_centroids['ZCTA5'].nunique()
+print("The Number of unique zip codes in Texas:", num_texas_zip)
+
+# Border state zip code prefix, including Texas and other border states
+border_states_prefixes = texas_prefixes + ('70', '71', '72', '73', '74', '87', '88')
+zips_texas_borderstates_centroids = zips_all_centroids[zips_all_centroids['ZCTA5'].str.startswith(border_states_prefixes)]
+num_borderstate_zip = zips_texas_borderstates_centroids['ZCTA5'].nunique()
+print("The Number of unique zip codes in Texas and bordering states:", num_borderstate_zip)
+```
 3. 
+
+```{python}
+
+import geopandas as gpd
+import pandas as pd
+
+data_2016 = pd.read_csv('pos2016.csv', encoding='ISO-8859-1')
+data_2017 = pd.read_csv('pos2017.csv', encoding='ISO-8859-1')
+data_2018 = pd.read_csv('pos2018.csv', encoding='ISO-8859-1')
+data_2019 = pd.read_csv('pos2019.csv', encoding='ISO-8859-1')
+
+# Read hospital data (assume file name pos2016.csv)
+hospitals_2016 = pd.read_csv('pos2016.csv')
+zip_shapefile_path = "/Users/joying/Documents/GitHub/student30538-5/Problem Set 4_Pair with Hyeyoon/gz_2010_us_860_00_500k"
+
+
+# Filter condition: Keep only the specified type of hospital records (can be adjusted according to the requirements of the topic)
+hospitals_2016 = hospitals_2016[
+    (hospitals_2016['PGM_TRMNTN_CD'] == 0) &
+    (hospitals_2016['PRVDR_CTGRY_SBTYP_CD'] == 1) &
+    (hospitals_2016['PRVDR_CTGRY_CD'] == 1)
+].copy()
+
+# Make sure the ZIP_CD column is a string and formatted to 5 digits
+hospitals_2016['ZIP_CD'] = hospitals_2016['ZIP_CD'].astype(str).str[:5]
+hospitals_2016['ZIP_CD'] = hospitals_2016['ZIP_CD'].str.zfill(5)
+
+# Filter out hospital records from ZIP code areas in border states and Texas
+border_states_prefixes = ('75', '76', '77', '78', '79', '70', '71', '72', '73', '74', '87', '88')
+hospitals_borderstates = hospitals_2016[hospitals_2016['ZIP_CD'].str.startswith(border_states_prefixes)]
+
+# Count the number of hospitals per ZIP code
+hospitals_count_by_zip = hospitals_borderstates.groupby('ZIP_CD').size().reset_index(name='hospital_count')
+
+# Load ZIP Code shapefile data
+zip_shapefile_path = "/Users/joying/Documents/GitHub/student30538-5/Problem Set 4_Pair with Hyeyoon/gz_2010_us_860_00_500k"
+zips_all_centroids = gpd.read_file(zip_shapefile_path)
+
+# Select the ZIP code area for Border states and Texas
+zips_all_centroids['ZCTA5'] = zips_all_centroids['ZCTA5'].astype(str)
+zips_texas_borderstates_centroids = zips_all_centroids[zips_all_centroids['ZCTA5'].str.startswith(border_states_prefixes)]
+
+# Merge data and filter ZIP codes with at least 1 hospital
+zips_withhospital_centroids = zips_texas_borderstates_centroids.merge(
+    hospitals_count_by_zip,
+    how='left',
+    left_on='ZCTA5',
+    right_on='ZIP_CD'
+)
+
+# Fill empty values and filter ZIP codes with hospitals
+zips_withhospital_centroids['hospital_count'] = zips_withhospital_centroids['hospital_count'].fillna(0).astype(int)
+zips_withhospital_centroids = zips_withhospital_centroids[zips_withhospital_centroids['hospital_count'] > 0]
+
+# output result
+print("Number of ZIP codes with at least one hospital:", len(zips_withhospital_centroids))
+print(zips_withhospital_centroids.head())
+
+
+
+```
+
+A GeoDataFrame named zips_withhospital_centroids was created, containing ZIP code areas with at least one hospital in 2016. I used a left merge to combine zips_texas_borderstates_centroids with hospitals_per_zip, retaining all ZIP code information for Texas and its bordering states and matching the hospital count for each ZIP code where possible. The merge was based on the ZCTA5 field (in zips_texas_borderstates_centroids) and the ZIP_CD field (in hospitals_per_zip), both representing ZIP code areas. Finally, ZIP code areas with a hospital count of 1 or more were filtered to obtain a subset with at least one hospital.
+
 4. 
     a.
 
 ```{python}
-#重做也是能扫出来代码的
 
 import time
 import geopandas as gpd
