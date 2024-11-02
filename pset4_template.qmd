@@ -346,6 +346,45 @@ for index, row in sorted_closed[['FAC_NAME', 'Closure_Year']].head(10).iterrows(
     print(f"- {row['FAC_NAME']} ({row['Closure_Year']})")
 ```
 3. 
+
+```{python}
+# Count the number of active hospitals per zip code per year
+active_counts = {
+    year: df[(df['PRVDR_CTGRY_CD'] == 1) & (df['PRVDR_CTGRY_SBTYP_CD'] == 1) & (df['PGM_TRMNTN_CD'] == 0)]
+    .groupby('ZIP_CD').size()
+    for year, df in zip([2016, 2017, 2018, 2019], [data_2016, data_2017, data_2018, data_2019])
+}
+
+# Identify suspected hospital closures due to mergers or acquisitions
+corrected_closures = []
+potential_mergers = 0
+
+for _, row in sorted_closed.iterrows():
+    zip_code, closure_year = row['ZIP_CD'], row['Closure_Year']
+    # Check that the closing year is less than 2019 for comparison with the following year
+    if closure_year < 2019:
+        current_count = active_counts[closure_year].get(zip_code, 0)
+        next_year_count = active_counts[closure_year + 1].get(zip_code, 0)
+        # If the number of active hospitals in the zip code does not decrease, it may be a merger
+        if current_count <= next_year_count:
+            potential_mergers += 1
+        else:
+            corrected_closures.append(row)
+    else:
+        corrected_closures.append(row)
+
+# Convert the list to a DataFrame to display the corrected closed hospitals
+corrected_closures_df = pd.DataFrame(corrected_closures)
+# Display the result 
+print(f"Number of potential mergers or acquisitions of hospitals: {potential_mergers}")
+print(f"Revised number of suspected hospital closures: {corrected_closures_df.shape[0]}")
+# Sort the corrected close list by name and display the first 10 rows
+corrected_closures_df = corrected_closures_df.sort_values(by='FAC_NAME')
+print("Revised list of top 10 hospitals closed:")
+print(corrected_closures_df[['FAC_NAME', 'ZIP_CD', 'Closure_Year']].head(10))
+
+```
+
     a.
     b.
     c.
