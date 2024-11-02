@@ -371,12 +371,14 @@ print("Revised list of top 10 hospitals closed:")
 print(corrected_closures_df[['FAC_NAME', 'ZIP_CD', 'Closure_Year']].head(10))
 
 ```
+a.
 
-A GeoDataFrame named zips_withhospital_centroids was created, containing ZIP code areas with at least one hospital in 2016. I used a left merge to combine zips_texas_borderstates_centroids with hospitals_per_zip, retaining all ZIP code information for Texas and its bordering states and matching the hospital count for each ZIP code where possible. The merge was based on the ZCTA5 field (in zips_texas_borderstates_centroids) and the ZIP_CD field (in hospitals_per_zip), both representing ZIP code areas. Finally, ZIP code areas with a hospital count of 1 or more were filtered to obtain a subset with at least one hospital.
+Potential mergers or acquisitions of hospitals: 97. Although these hospitals appear as closed in the data, the number of active hospitals in their ZIP code areas did not decrease in the following year, suggesting they may be mergers or re-certifications. Suspected hospital closures: After excluding potential mergers, the remaining number of suspected hospital closures is 77.
 
-    a.
-    b.
-    c.
+b.
+
+Based on the corrected list of suspected hospital closures, we sorted the hospitals by name to identify the top entries. These include hospitals such as Alliance Laird Hospital, AllianceHealth Deaconess, Anne Bates Leach Eye Hospital, and Barix Clinics of Pennsylvania. Other notable entries include Baylor Emergency Medical Center, Baylor Scott & White Emergency Medical Center, and Belmont Community Hospital. This sorted list provides insight into the names and locations of hospitals marked as closures, helping us verify which facilities likely closed and assess whether these closures might be related to mergers or re-certifications.
+
 
 ## Download Census zip code shapefile (10 pt) 
 1. 
