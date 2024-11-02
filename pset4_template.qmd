@@ -439,6 +439,21 @@ plt.show()
 
 ## Calculate zip code’s distance to the nearest hospital (20 pts) (*)
 
+```{python}
+import geopandas as gpd
+import pandas as pd
+import matplotlib.pyplot as plt
+pip install fiona
+import time
+from shapely.ops import nearest_points
+
+zip_shapefile_path = "/Users/joying/Documents/GitHub/student30538-5/Problem Set 4_Pair with Hyeyoon/gz_2010_us_860_00_500k"
+
+zips_all_centroids = gpd.read_file(zip_shapefile_path)
+
+
+```
+
 1. 
 
 ```{python}
